@@ -10,6 +10,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.ElementClickInterceptedException;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -48,7 +50,7 @@ class WebsiteFunctionalTest {
 
     @Test
     void workNavigationOpensSelectedWorkSection() {
-        driver.findElement(By.cssSelector("a[href='#work']")).click();
+        clickWhenReady(By.cssSelector("a[href='#work']"));
 
         wait.until(ExpectedConditions.urlContains("#work"));
         assertEquals("Quality goes deeper than a passing test.", normalizedText(By.id("work-title")));
@@ -56,7 +58,7 @@ class WebsiteFunctionalTest {
 
     @Test
     void aiResponseTabShowsItsExplanation() {
-        driver.findElement(By.id("tab-responses")).click();
+        clickWhenReady(By.id("tab-responses"));
 
         wait.until(ExpectedConditions.attributeToBe(By.id("tab-responses"), "aria-selected", "true"));
         WebElement panel = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("panel-responses")));
@@ -69,7 +71,7 @@ class WebsiteFunctionalTest {
         WebElement details = driver.findElement(By.cssSelector("#work details"));
         assertNull(details.getDomAttribute("open"));
 
-        details.findElement(By.tagName("summary")).click();
+        clickWhenReady(By.cssSelector("#work details summary"));
 
         wait.until(d -> details.getDomAttribute("open") != null);
         assertTrue(details.getText().contains("Automated API regression and sanity tests with Karate"));
@@ -78,7 +80,7 @@ class WebsiteFunctionalTest {
     @Test
     void automationFilterShowsOnlyAutomationCategories() {
         WebElement filter = driver.findElement(By.cssSelector("button[data-filter='automation']"));
-        filter.click();
+        clickWhenReady(By.cssSelector("button[data-filter='automation']"));
 
         wait.until(ExpectedConditions.attributeToBe(filter, "aria-pressed", "true"));
         List<WebElement> visibleRows = driver.findElements(By.cssSelector("#expertise .skill-row:not([hidden])"));
@@ -91,7 +93,7 @@ class WebsiteFunctionalTest {
 
     @Test
     void contactNavigationShowsContactTextAndEmailLink() {
-        driver.findElement(By.cssSelector("a[href='#contact']")).click();
+        clickWhenReady(By.cssSelector("a[href='#contact']"));
 
         wait.until(ExpectedConditions.urlContains("#contact"));
         assertEquals("Building something that needs to work?", normalizedText(By.id("contact-title")));
@@ -102,6 +104,30 @@ class WebsiteFunctionalTest {
     }
 
     private String normalizedText(By locator) {
-        return driver.findElement(locator).getText().replaceAll("\\s+", " ").trim();
+        WebElement element = scrollIntoView(locator);
+        return wait.until(d -> {
+            String text = element.getText().replaceAll("\\s+", " ").trim();
+            return text.isEmpty() ? null : text;
+        });
+    }
+
+    private void clickWhenReady(By locator) {
+        WebElement element = scrollIntoView(locator);
+        wait.until(ExpectedConditions.elementToBeClickable(element));
+        wait.until(d -> {
+            try {
+                element.click();
+                return true;
+            } catch (ElementClickInterceptedException e) {
+                return false;
+            }
+        });
+    }
+
+    private WebElement scrollIntoView(By locator) {
+        WebElement element = driver.findElement(locator);
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].scrollIntoView({block: 'center', behavior: 'auto'});", element);
+        return element;
     }
 }
