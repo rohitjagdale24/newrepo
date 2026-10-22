@@ -22,3 +22,7 @@ mvn compile exec:java
 ```
 
 Selenium Manager handles ChromeDriver automatically when a compatible driver is not already installed.
+
+## JavaScript version
+
+The same six functional checks are available in [`javascript/`](javascript/README.md). Install Node.js 22 or newer, then follow that folder's README to run them with `npm test`.

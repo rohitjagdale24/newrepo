@@ -1,0 +1,15 @@
+{
+  "name": "rohit-resume-automated-js",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Selenium WebDriver functional tests for Rohit Jagdale's portfolio",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 website.test.cjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "selenium-webdriver": "4.51.0"
+  }
+}
